@@ -3,7 +3,7 @@ import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import Login from '../views/auth/Login.vue'
 import Register from '../views/auth/Register.vue'
-import PayPal from '../views/PayPal.vue'
+//import PayPal from '../views/PayPal.vue'
 import Product from '../views/Product.vue'
 Vue.use(VueRouter)
 
@@ -11,8 +11,8 @@ const routes = [
   { path: '/auth/register', component:Register },
   { path: '/auth/login', component:Login },
   { path: '/auth/:provider/callback', component:Login },
-  { path: '/paypal', component:PayPal },
-  { path: '/product/:id',name:'product' ,component:Product,props: true },
+ // { path: '/paypal/:product_id', component:PayPal },
+  { path: '/products/show/:id',name:'products.show' ,component:Product ,props: true},
   {
     path: '/',
     name: 'Home',

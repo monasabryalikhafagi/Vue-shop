@@ -50,7 +50,7 @@
 														</div>
 													</div>
 													<div class="product-content">
-														<h3><router-link :to="{ name: 'product', params: { Id:product.id  }}">{{product.title}}</router-link></h3>
+														<h3><router-link :to="{ name: 'products.show', params: { id:product.id  }}">{{product.title}}</router-link></h3>
 														<div class="product-price">
 															<span>${{product.price}}</span>
 														</div>

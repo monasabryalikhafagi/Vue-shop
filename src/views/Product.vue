@@ -11,7 +11,7 @@
                   <a href="index1.html">Home<i class="ti-arrow-right"></i></a>
                 </li>
                 <li class="active">
-                  <a>{{product.title}} </a>
+                  <a>{{ product.title }} </a>
                 </li>
               </ul>
             </div>
@@ -29,7 +29,7 @@
               <div class="row">
                 <div class="col-12">
                   <div class="image">
-                    <img :src="product.image_path"  alt="#" />
+                    <img :src="product.image_path" alt="#" />
                   </div>
                   <div class="blog-detail">
                     <h2 class="blog-title">
@@ -240,17 +240,16 @@
                 <ul class="categor-list">
                   <li><a href="#">Men's Apparel</a></li>
                   <li><a href="#">Women's Apparel</a></li>
-            
                 </ul>
               </div>
               <!--/ End Single Widget -->
-                            <!-- Single Widget -->
+              <!-- Single Widget -->
               <div class="single-widget category">
-                <h3 class="title">Buy </h3>
+                <h3 class="title">Buy</h3>
                 <ul class="categor-list">
                   <li><a href="#">Add to cart</a></li>
-                  <li><a href="#"> Make Order</a></li>
-            
+                  <!-- <li><a :href="`/paypal/${product.id}`">Make order</a></li> -->
+                  <li id="paypalButton"></li>
                 </ul>
               </div>
               <!--/ End Single Widget -->
@@ -363,34 +362,87 @@
 </template>
 
 <script>
+import { loadScript } from "@paypal/paypal-js";
+
+let paypal;
+
 export default {
   name: "Product",
-  props:['id'],
+  props: ["id"],
   data() {
     return {
-      product: "",
-      errors:{}
-    }
+      product: {},
+      errors: {},
+    };
   },
   components: {},
-  mounted(){
-          this.$http
-        .get("http://laravel-shop.test/api/products/show/"+this.$route.query.id)
-        .then((response) => {
-          console.log(response);
-           this.product = response.data;
-        })
-        .catch( (error) => {
-          if (error.response) {
-            console.log("response");
-            this.errors = error.response.data.errors;
-          } else if (error.request) {
-            console.log(error.request);
-          } else {
-            console.log("Error", error.message);
-          }
-          console.log(error.config);
-        });
-  }
+  methods: {
+    getProduct: function(){
+    this.$http
+      .get("http://laravel-shop.test/api/products/show/" + this.$props.id)
+      .then((response) => {
+        console.log(response);
+        this.product = response.data;
+      })
+      .catch((error) => {
+        if (error.response) {
+          this.errors = error.response.data.errors;
+        } else if (error.request) {
+          console.log(error.request);
+        } else {
+          console.log("Error", error.message);
+        }
+        console.log(error.config);
+      });
+    },
+    saveUserOrder: () => {},
+    
+  },
+  mounted () {
+    console.log(process.env);
+    this.getProduct();
+    loadScript({
+      "client-id":process.env.PAYPAL_CLIENT_ID,
+        "intent":"capture"
+    })
+      .then((paypal) => {
+        paypal
+          .Buttons({
+            createOrder:(data, actions) =>{
+                 console.log(this);
+              console.log(this.product.price);
+
+              return actions.order.create({
+                purchase_units:[{
+                    description:this.product.description,
+                    amount: {
+                      value: this.product.price
+                  
+                    },
+                  }]
+              });
+          
+            },
+            onApprove: function (data, actions) {
+            
+              // This function captures the funds from the transaction.
+              return actions.order.capture().then(function (details) {
+                console.log(details);
+                // This function shows a transaction success message to your buyer.
+                alert(
+                  "Transaction completed by " + details.payer.name.given_name
+                );
+              });
+            },
+          })
+          .render("#paypalButton")
+          .catch((error) => {
+            console.error("failed to render the PayPal Buttons", error);
+          });
+      })
+      .catch((error) => {
+        console.error("failed to load the PayPal JS SDK script", error);
+      });
+  },
 };
 </script>
