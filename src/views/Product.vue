@@ -395,7 +395,24 @@ export default {
         console.log(error.config);
       });
     },
-    saveUserOrder: () => {},
+    saveUserOrder: function (transaction_id,status) {
+      this.$http
+      .post("http://laravel-shop.test/api/orders/create/",{quantity:1,product_id:this.product.id,transaction_id:transaction_id,status:status})
+      .then((response) => {
+        console.log(response);
+
+      })
+      .catch((error) => {
+        if (error.response) {
+          this.errors = error.response.data.errors;
+        } else if (error.request) {
+          console.log(error.request);
+        } else {
+          console.log("Error", error.message);
+        }
+        console.log(error);
+      });
+    }
     
   },
   mounted () {
@@ -409,8 +426,6 @@ export default {
         paypal
           .Buttons({
             createOrder:(data, actions) =>{
-                 console.log(this);
-              console.log(this.product.price);
 
               return actions.order.create({
                 purchase_units:[{
@@ -423,16 +438,15 @@ export default {
               });
           
             },
-            onApprove: function (data, actions) {
+            onApprove:  (data, actions) =>{
             
               // This function captures the funds from the transaction.
-              return actions.order.capture().then(function (details) {
-                console.log(details);
-                // This function shows a transaction success message to your buyer.
-                alert(
-                  "Transaction completed by " + details.payer.name.given_name
-                );
-              });
+                
+                 return actions.order.capture().then((details)=>{
+
+                   this.saveUserOrder(details.id,details.status);
+                 });
+              
             },
           })
           .render("#paypalButton")
