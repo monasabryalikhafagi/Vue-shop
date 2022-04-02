@@ -1,6 +1,6 @@
-# restaurant-front
+# Shop front 
 
-> A Vue.js project
+It is e
 
 ## Build Setup
 
